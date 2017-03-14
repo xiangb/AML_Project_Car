@@ -64,7 +64,7 @@ class GameState:
         # Create some obstacles, semi-randomly.
         # We'll create three and they'll move around to prevent over-fitting.
         self.obstacles = []
-        self.obstacles.append(self.create_obstacle(200, 350, 100))
+        self.obstacles.append(self.create_obstacle(200, 350, 80))
         self.obstacles.append(self.create_obstacle(700, 200, 125))
         self.obstacles.append(self.create_obstacle(600, 600, 35))
 
@@ -131,8 +131,8 @@ class GameState:
         # Get the current location and the readings there.
         x, y = self.car_body.position
         readings = self.get_sonar_readings(x, y, self.car_body.angle)
-        state = np.array([[x]+[y]+readings])
-
+        state = np.array([x]+[y]+readings)
+        #state = np.array(readings)
         # Set the reward.
         # Car crashed when any reading == 1
         if self.car_is_crashed(readings):
@@ -175,7 +175,7 @@ class GameState:
             self.crashed = False
             for i in range(10):
                 self.car_body.angle += .2  # Turn a little.
-                screen.fill(THECOLORS["red"])  # Red is scary!
+                #screen.fill(THECOLORS["red"])  # Red is scary!
                 draw(screen, self.space)
                 self.space.step(1./10)
                 if draw_screen:
