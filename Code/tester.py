@@ -281,7 +281,7 @@ if __name__ == '__main__':
 		df_res = pd.DataFrame.from_dict(res_distances,orient='index').sort_index()
 		df_res.to_csv('Comparing_agents/distances_made.txt')
 
-	if True:
+	if False:
 
 		# Load distances from previous training 
 		data_distances = pd.read_csv('Comparing_agents/distances_made.txt')
@@ -327,24 +327,13 @@ if __name__ == '__main__':
 
 
 
-	path = 'Qmat_5000.txt'
-	#agent = RandomAgent()
-	#agent = Qlearning_discrete(epsilon,alpha,gamma,nb_actions,state_dims)
-	#agent = Qlearning_cont_3Sensors(epsilon,alpha,gamma,n_arm,max_arm,nb_actions)
-	#agent = Qlearning_XY3Sensors(epsilon,alpha,gamma,p,k,n_arm,max_arm,nb_actions)
-	#a = Tester(agent)
-	#b = a.learn(nb_episodes,'Qmat_',True,path)
-	#Tester(agent).play_model(1000,'Discrete3Sensors/Qmat_5000.txt')
-	
-
-
 	if False:
 
 		""" Train each discrete agent with a pair of parameters (alpha,gamma)
 			We stop training after 2000 episodes and save the learned matrix
 			CAREFUL : NEED MORE THAN 5 HOURS OF TRAINING FOR ALL THESE MODELS (25 different models)"""
 
-		for alpha in [0.9]:
+		for alpha in [0.1,0.3,0.5,0.7,0.9]:
 			for gamma in [0.1,0.3,0.5,0.7,0.9]:
 
 				agent = Qlearning_discrete(epsilon,alpha,gamma,nb_actions,state_dims)
@@ -373,6 +362,7 @@ if __name__ == '__main__':
 		
 		df_res = pd.DataFrame.from_dict(res,orient='index').sort_index()
 		df_res.to_csv('Results_Parameters_Discrete/performances.txt')
+
 
 
 
