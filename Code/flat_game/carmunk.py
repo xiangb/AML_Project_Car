@@ -27,8 +27,10 @@ draw_screen = True
 class GameState:
     def __init__(self):
         # game parametres : Hardcoded for now 
-        # TODO : add an argument to externalise the game parameters - cat_number
-        self.cat_number = 4
+        # TODO : externalise cat_number and obstacles_positions
+        self.cat_number = 1
+        self.obstacles_positions = [(200, 350, 80), (700, 200, 125), (600, 600, 35)]
+        self.obstacles_number = len(self.obstacles_positions)
 
         # Global-ish.
         self.crashed = False
@@ -66,14 +68,10 @@ class GameState:
             s.color = THECOLORS['red']
         self.space.add(static)
 
-        # TODO : externalise the obstacles parameters
-        # TODO : automate the obstacle creation
-        # Create some obstacles, semi-randomly.
-        # We'll create three and they'll move around to prevent over-fitting.
+        # Create the obstacles
         self.obstacles = []
-        self.obstacles.append(self.create_obstacle(200, 350, 80))
-        self.obstacles.append(self.create_obstacle(700, 200, 125))
-        self.obstacles.append(self.create_obstacle(600, 600, 35))
+        for i in range(self.obstacles_number):
+            self.obstacles.append(self.create_obstacle(*self.obstacles_positions[i]))
 
         # Create the cats
         self.create_cats()
