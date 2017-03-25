@@ -26,6 +26,10 @@ draw_screen = True
 
 class GameState:
     def __init__(self):
+        # game parametres : Hardcoded for now 
+        # TODO : add an argument to externalise the game parameters - cat_number
+        self.cat_number = 4
+
         # Global-ish.
         self.crashed = False
 
@@ -40,6 +44,7 @@ class GameState:
         self.num_steps = 0
 
         # Create walls.
+        # TODO : externalise the walls parameters
         static = [
             pymunk.Segment(
                 self.space.static_body,
@@ -61,6 +66,8 @@ class GameState:
             s.color = THECOLORS['red']
         self.space.add(static)
 
+        # TODO : externalise the obstacles parameters
+        # TODO : automate the obstacle creation
         # Create some obstacles, semi-randomly.
         # We'll create three and they'll move around to prevent over-fitting.
         self.obstacles = []
@@ -68,8 +75,8 @@ class GameState:
         self.obstacles.append(self.create_obstacle(700, 200, 125))
         self.obstacles.append(self.create_obstacle(600, 600, 35))
 
-        # Create a cat.
-        self.create_cat()
+        # Create the cats
+        self.create_cats()
 
     def create_obstacle(self, x, y, r):
         c_body = pymunk.Body(pymunk.inf, pymunk.inf)
@@ -80,16 +87,20 @@ class GameState:
         self.space.add(c_body, c_shape)
         return c_body
 
-    def create_cat(self):
+    def create_cats(self):
+        # create n = number cats ennemies
         inertia = pymunk.moment_for_circle(1, 0, 14, (0, 0))
-        self.cat_body = pymunk.Body(1, inertia)
-        self.cat_body.position = 50, height - 100
-        self.cat_shape = pymunk.Circle(self.cat_body, 30)
-        self.cat_shape.color = THECOLORS["orange"]
-        self.cat_shape.elasticity = 1.0
-        self.cat_shape.angle = 0.5
-        direction = Vec2d(1, 0).rotated(self.cat_body.angle)
-        self.space.add(self.cat_body, self.cat_shape)
+        self.cat_bodies = []
+        self.cat_shape = []
+        for i in range(self.cat_number):
+            self.cat_bodies.append(pymunk.Body(1, inertia))
+            self.cat_bodies[i].position = 50, height - 100
+            self.cat_shape.append(pymunk.Circle(self.cat_bodies[i], 30))
+            self.cat_shape[i].color = THECOLORS["orange"]
+            self.cat_shape[i].elasticity = 1.0
+            self.cat_shape[i].angle = 0.5
+            direction = Vec2d(1, 0).rotated(self.cat_bodies[i].angle)
+            self.space.add(self.cat_bodies[i], self.cat_shape[i])
 
     def create_car(self, x, y, r):
         inertia = pymunk.moment_for_circle(1, 0, 14, (0, 0))
@@ -115,7 +126,7 @@ class GameState:
 
         # Move cat.
         if self.num_steps % 5 == 0:
-            self.move_cat()
+            self.move_cats()
 
         driving_direction = Vec2d(1, 0).rotated(self.car_body.angle)
         self.car_body.velocity = 100 * driving_direction
@@ -153,11 +164,12 @@ class GameState:
             direction = Vec2d(1, 0).rotated(self.car_body.angle + random.randint(-2, 2))
             obstacle.velocity = speed * direction
 
-    def move_cat(self):
-        speed = random.randint(20, 200)
-        self.cat_body.angle -= random.randint(-1, 1)
-        direction = Vec2d(1, 0).rotated(self.cat_body.angle)
-        self.cat_body.velocity = speed * direction
+    def move_cats(self):
+        for i in range(self.cat_number):
+            speed = random.randint(20, 200)
+            self.cat_bodies[i].angle -= random.randint(-1, 1)
+            direction = Vec2d(1, 0).rotated(self.cat_bodies[i].angle)
+            self.cat_bodies[i].velocity = speed * direction
 
     def car_is_crashed(self, readings):
         if readings[0] == 1 or readings[1] == 1 or readings[2] == 1:
