@@ -362,10 +362,8 @@ if __name__ == '__main__':
 		
 		df_res = pd.DataFrame.from_dict(res,orient='index').sort_index()
 		df_res.to_csv('Results_Parameters_Discrete/performances.txt')
-
-
-
-
-
-
+	if True:
+		agent = Qlearning_discrete(0.1,0.1,0.1,nb_actions,state_dims)
+		test = Tester(agent)
+		player = test.play_model(200,'../FinalAgentParameters/Qmat_8000_episodes.txt')
 
