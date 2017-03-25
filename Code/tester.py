@@ -1,6 +1,9 @@
 from flat_game import carmunk
 import numpy as np
+import pandas as pd
 import random
+import os
+import matplotlib.pyplot as plt
 
 
 class RandomAgent():
@@ -10,13 +13,13 @@ class RandomAgent():
         """
         pass
 
-    def act(self):
+    def act(self,state):
         """
         Choose action depending on your internal state
         """
         return np.random.randint(0, 3)
 
-    def update(self, next_state, reward):
+    def update(self, state,next_state, reward):
         """
         Update your internal state
         """
@@ -161,7 +164,7 @@ class Tester():
         self.carmunk = carmunk.GameState()
         self.agent = agent
 
-    def learn(self,nb_episodes,filename,load_model,model_path):
+    def learn(self,nb_episodes,path=None,save_coef =False,load_model=False,model_path=None):
 
         # if we want to load some trained parameters
         if load_model:
@@ -172,8 +175,6 @@ class Tester():
         _,state = self.carmunk.frame_step(random.randint(0,3))
         # storing distance made by the car
         car_distance = 0
-
-        distance_training = []
         distance_measure = []
 
         episode = 1
@@ -186,35 +187,67 @@ class Tester():
 
             state = new_state
 
-            if reward == -500:
-                if nb_episodes - episode < 50:
-                    distance_measure.append(car_distance)
-                else:
-                    distance_training.append(car_distance)
-                print("episode : %d distance_made : %d" % (episode, car_distance))
+            if reward == -500: # means collision 
+
                 
+                distance_measure.append(car_distance)
+                print("episode : %d distance_made : %d" % (episode, car_distance))
                 car_distance = 0
                 episode += 1
 
-            if episode%1000 == 0:
-                #np.savetxt('Qmat_'+str(episode)+'.txt',self.agent.Qmat,delimiter = ',')
-                np.savetxt(filename+str(episode)+'_episodes.txt',self.agent.W,delimiter=',')
+            
+            if save_coef:
 
-        print(distance_measure)
-        return np.mean(np.array(distance_measure))
+                if episode%2000 == 0:
+               	    os.makedirs(path, exist_ok=True)
+                    np.savetxt(path+'Qmat_'+str(episode)+'_episodes.txt',self.agent.W,delimiter=',')
+
+        
+        return distance_measure,np.mean(np.array(distance_measure))
 
 
     def load_trained_model(self,path):
-    	trained_model = np.loadtxt(path,delimiter=',')
-    	return trained_model
+        trained_model = np.loadtxt(path,delimiter=',')
+        return trained_model
+
+    def play_model(self,nb_episodes,model_path):
+
+        self.agent.W = self.load_trained_model(model_path)
+        # Initial state
+        _,state = self.carmunk.frame_step(random.randint(0,3))
+        # storing distance made by the car
+        car_distance = 0
+
+        distance = []
+        episode = 1
+
+        while episode <= nb_episodes:
+            car_distance += 1
+            reward,new_state = self.carmunk.frame_step(self.agent.act(state))
+
+            state = new_state
+            # the agent does not learn now, only choose action depending on the learned parameters (loaded model)
+
+            if reward == -500:
+                
+                    distance.append(car_distance)
+                    print("episode : %d distance_made : %d" % (episode, car_distance))
+                    car_distance = 0
+                    episode += 1
+
+        print('Average distance made on the ' + str(nb_episodes) + ' episodes : ' + str(np.mean(np.array(distance))))
+        return np.mean(np.array(distance))
+
+
+
 
 
 
 if __name__ == '__main__':
 	
-	nb_episodes = 1000
-	gamma = 0.1
-	alpha=0.1
+	nb_episodes = 2000
+	gamma = 0.5
+	alpha=0.5
 	epsilon = 0.1
 	p = 30
 	k= 10
@@ -223,15 +256,125 @@ if __name__ == '__main__':
 	nb_actions = 3
 	state_dims = [40,40,40]
 
+
+	if False:
+		""" Compare random agent, and the 3 q learning agent with the same parameters 
+			We are training over 5000 episodes and recording the distances made for each episode
+			The second step will be to construct a 50 episodes moving average of the distances for 
+			each agent """
+
+		# Random agent 
+		agents = {'random':RandomAgent(),
+				'discrete_sensors':Qlearning_discrete(epsilon,alpha,gamma,nb_actions,state_dims),
+				'continuous_sensors':Qlearning_cont_3Sensors(epsilon,alpha,gamma,n_arm,max_arm,nb_actions),
+				'discrete_XY_continuous_sensors':Qlearning_XY3Sensors(epsilon,alpha,gamma,p,k,n_arm,max_arm,nb_actions)}
+
+		res_distances = {}
+
+		for agent in agents:
+			print(agent)
+			print('\n')
+			test = Tester(agents[agent])
+			distances, mean_distance = test.learn(3000)
+			res_distances[agent] = distances
+
+		df_res = pd.DataFrame.from_dict(res_distances,orient='index').sort_index()
+		df_res.to_csv('Comparing_agents/distances_made.txt')
+
+	if True:
+
+		# Load distances from previous training 
+		data_distances = pd.read_csv('Comparing_agents/distances_made.txt')
+		res_mean = {}
+		for i in range(len(data_distances)):
+
+			agent = data_distances.iloc[i,0]
+			distances = data_distances.iloc[i,1:].tolist()
+
+			res_temp = []
+
+			for j in range(len(distances)-300):
+				res_temp.append(sum(distances[j:j+300])/300)
+
+			print('.'),
+
+			res_mean[agent] = res_temp
+
+
+		# Plot the results 
+
+		# list for legend
+		legend = []
+		for agent in res_mean:
+
+			plt.plot(res_mean[agent])
+			legend.append(str(agent))
+		
+		plt.title('Mean distance for moving average over 300 episodes')
+		plt.ylabel('Mean distance')
+		plt.legend(legend)
+		plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
 	path = 'Qmat_5000.txt'
 	#agent = RandomAgent()
-	agent = Qlearning_discrete(epsilon,alpha,gamma,nb_actions,state_dims)
+	#agent = Qlearning_discrete(epsilon,alpha,gamma,nb_actions,state_dims)
 	#agent = Qlearning_cont_3Sensors(epsilon,alpha,gamma,n_arm,max_arm,nb_actions)
 	#agent = Qlearning_XY3Sensors(epsilon,alpha,gamma,p,k,n_arm,max_arm,nb_actions)
-	a = Tester(agent)
-	b = a.learn(nb_episodes,'Qmat_',True,path)
+	#a = Tester(agent)
+	#b = a.learn(nb_episodes,'Qmat_',True,path)
+	#Tester(agent).play_model(1000,'Discrete3Sensors/Qmat_5000.txt')
+	
 
-	print(b)
+
+	if False:
+
+		""" Train each discrete agent with a pair of parameters (alpha,gamma)
+			We stop training after 2000 episodes and save the learned matrix
+			CAREFUL : NEED MORE THAN 5 HOURS OF TRAINING FOR ALL THESE MODELS (25 different models)"""
+
+		for alpha in [0.9]:
+			for gamma in [0.1,0.3,0.5,0.7,0.9]:
+
+				agent = Qlearning_discrete(epsilon,alpha,gamma,nb_actions,state_dims)
+				test = Tester(agent)
+				distances,mean_distance = test.learn(nb_episodes=nb_episodes,path='Discrete3Sensors/alpha_'+str(alpha)+'_gamma_'+str(gamma),
+					save_coef=True,load_model=False)
+
+	if False: 
+
+		""" We load the previous learned model and we measure the mean distance made 
+			over 200 episodes for each trained model"""
+
+		# folder containing all our agent 
+		output = [d for d in os.listdir('Discrete3Sensors') if os.path.isdir(os.path.join('Discrete3Sensors',d))]
+
+		res = {}
+		
+		for directory in output:
+			# initialize the qlearning discrete agent with random values, we'll not use them because we will only play our trained model 
+
+			agent = Qlearning_discrete(0.1,0.1,0.1,nb_actions,state_dims)
+			test = Tester(agent)
+			player = test.play_model(200,'Discrete3Sensors/'+directory+'/Qmat_2000_episodes.txt')
+
+			res[directory] = player
+		
+		df_res = pd.DataFrame.from_dict(res,orient='index').sort_index()
+		df_res.to_csv('Results_Parameters_Discrete/performances.txt')
+
+
 
 
 
