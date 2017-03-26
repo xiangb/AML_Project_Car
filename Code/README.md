@@ -21,7 +21,8 @@ The pymunk version on which all the physics of this project is based is based on
 # Running the code
 
 ## Training a model
-
+On the `tester.py` file select the proper agents you want to train as well as the parameters in the main section
+Then run `python3 tester.py`
 
 
 ## Playing pretrained model
