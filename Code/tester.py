@@ -362,8 +362,29 @@ if __name__ == '__main__':
 		
 		df_res = pd.DataFrame.from_dict(res,orient='index').sort_index()
 		df_res.to_csv('Results_Parameters_Discrete/performances.txt')
+
+
+	if False:
+
+		""" We are now training an agent with the tuned parameters alpha and gamma, i.e. alpha = 0.7 and gamma = 0.5 
+			for 8000 episodes. 
+			We will measure performance of such an agent and we will also save the learned coefficients in order for teacher to play this model
+
+		"""
+		final_agent = Qlearning_discrete(epsilon=0.1,alpha=0.7,gamma=0.5,nb_actions=nb_actions,state_dims=state_dims)
+		test = Tester(final_agent)
+		distances,mean_dist = test.learn(8000,'FinalAgent/',True,False)
+		print(mean_dist)
+
+
+
+
 	if True:
+
+		## Play our final agent learned after 8000 episodes
+
 		agent = Qlearning_discrete(0.1,0.1,0.1,nb_actions,state_dims)
 		test = Tester(agent)
 		player = test.play_model(200,'../FinalAgentParameters/Qmat_8000_episodes.txt')
+		print(np.mean(np.array(player)))
 
