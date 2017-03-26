@@ -6,6 +6,6 @@ Comparisons of several reinforcement methods applied in the task of avoiding obs
 
 `/Code/flat_game` contains the class related to the creation of the environment, setting up the obstacles and ennemies
 
-`/Code/tester.py` launching several agent for comparisons puroposes
+`/Code/tester.py` launching trained agent 
 
-The other folders contains the results for comparison puroposes
+The other folders contains the results of made distances and coefficients of trained agent.
