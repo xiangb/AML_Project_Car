@@ -78,7 +78,7 @@ class Qlearning_cont_3Sensors():
         if np.random.rand() < self.epsilon:
             self.action = np.random.randint(0,3)
         else:
-            self.action = np.argmax(np.dot(np.transpose(self.W),np.array(state[2:])/self.max_arm))
+            self.action = np.argmax(np.dot(self.W,np.array(state[2:])/self.max_arm))
         return self.action
 
     def update(self,state,next_state,reward):

@@ -28,8 +28,21 @@ class GameState:
     def __init__(self):
         # game parametres : Hardcoded for now 
         # TODO : externalise cat_number and obstacles_positions
-        self.cat_number = 1
-        self.obstacles_positions = [(200, 350, 80), (700, 200, 125), (600, 600, 35)]
+
+        first_environment = True
+
+        # For second environment, set first_environment to False
+        
+        if first_environment:
+            self.cat_number = 1
+            self.obstacles_positions = [(200, 350, 80), (700, 200, 125), (600, 600, 35)]
+
+        else:
+            self.cat_number = 3
+            self.obstacles_positions = [(200, 350, 80), (700, 200, 125), (600, 600, 35),(300,300,20),(450,200,50)]
+
+
+        
         self.obstacles_number = len(self.obstacles_positions)
 
         # Global-ish.
